@@ -8,7 +8,7 @@ function runCommand(command, args, done) {
         if(err) return done(err);
         if(stdErr) return done(new Error(stdErr));
 
-        done();
+        done(null, stdOut);
     });
 }
 
@@ -31,3 +31,4 @@ function smartEdit(path, done) {
 exports.edit = edit;
 exports.add = add;
 exports.smartEdit = smartEdit;
+exports.run = runCommand;
