@@ -40,3 +40,15 @@ p4.smartEdit("output.css", function(err) {
     if(err) console.error(err.message);
 });
 ```
+
+### p4.run(command, [args], done) ###
+Run an arbitrary command with or without args against the Perforce server.
+```javascript
+p4.run("info", done(err, stdout){
+    if(err) {
+        return console.error(err.message);
+    }
+
+    console.log(stdout);
+});
+```
