@@ -52,4 +52,10 @@ p4.run("edit", "path/to/file", function(err, stdout) {
     if(err) console.error(err.message);
     console.log(stdout);
 });
+
+// With optional "args" arg
+p4.run("info", function(err, stdout) {
+    if(err) console.error(err.message);
+    console.log(stdout);
+});
 ```
