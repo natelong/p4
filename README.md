@@ -15,16 +15,18 @@ var p4 = require("p4");
 ### p4.edit(path, done)
 Tell Perforce to open a file for editing
 ```javascript
-p4.edit("output.css", function(err) {
+p4.edit("output.css", function(err, stdout) {
     if(err) console.error(err.message);
+    console.log(stdout);
 });
 ```
 
 ### p4.add(path, done)
 Tell Perforce to add a file to the default pending changelist
 ```javascript
-p4.add("output.css", function(err) {
+p4.add("output.css", function(err, stdout) {
     if(err) console.error(err.message);
+    console.log(stdout);
 });
 ```
 
@@ -36,19 +38,18 @@ This is really meant to be a catch-all for automated output from tools. If you'r
 >Note: Since you're sending requests to your Perforce server with each of these commands, don't just run this willy-nilly on every file in your project or something silly like that.
 
 ```javascript
-p4.smartEdit("output.css", function(err) {
+p4.smartEdit("output.css", function(err, stdout) {
     if(err) console.error(err.message);
+    console.log(stdout);
 });
 ```
 
-### p4.run(command, [args], done) ###
-Run an arbitrary command with or without args against the Perforce server.
-```javascript
-p4.run("info", done(err, stdout){
-    if(err) {
-        return console.error(err.message);
-    }
+### p4.run(command, [args], done)
+Run a command directly, rather than through a proxying function. You can use this to call arbitrary commands, but if you find yourself using this often, feel free to submit a pull request updating the API or an issue describing the command and what you'd like to see returned.
 
+```javascript
+p4.run("edit", "path/to/file", function(err, stdout) {
+    if(err) console.error(err.message);
     console.log(stdout);
 });
 ```
