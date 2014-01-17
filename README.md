@@ -44,7 +44,7 @@ p4.smartEdit("output.css", function(err, stdout) {
 });
 ```
 
-### p4.run(command, args, done)
+### p4.run(command, [args], done)
 Run a command directly, rather than through a proxying function. You can use this to call arbitrary commands, but if you find yourself using this often, feel free to submit a pull request updating the API or an issue describing the command and what you'd like to see returned.
 
 ```javascript
@@ -52,4 +52,10 @@ p4.run("edit", "path/to/file", function(err, stdout) {
     if(err) console.error(err.message);
     console.log(stdout);
 });
-``` 
+
+// With optional "args" arg
+p4.run("info", function(err, stdout) {
+    if(err) console.error(err.message);
+    console.log(stdout);
+});
+```

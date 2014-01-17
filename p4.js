@@ -4,7 +4,12 @@
 var exec = require("child_process").exec;
 
 function runCommand(command, args, done) {
-    exec("p4 " + command + " " + args, function(err, stdOut, stdErr) {
+    if(typeof args === "function") {
+        done = args;
+        args = "";
+    }
+
+    exec("p4 " + command + " " + (args || ""), function(err, stdOut, stdErr) {
         if(err) return done(err);
         if(stdErr) return done(new Error(stdErr));
 
