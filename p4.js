@@ -33,7 +33,12 @@ function smartEdit(path, done) {
     });
 }
 
+function revertUnchanged(path, done) {
+    runCommand("revert", "-a", done);
+}
+
 exports.edit = edit;
 exports.add = add;
 exports.smartEdit = smartEdit;
 exports.run = runCommand;
+exports.revertUnchanged = revertUnchanged;
