@@ -6,6 +6,14 @@ var exec = require("child_process").exec;
 var path = require("path");
 var cwd = __dirname;
 
+function cd(dir){
+    cwd = path.resolve(cwd,dir);
+    //allow chaining by returning exports
+    //i.e. p4.cd('dir').edit('file')
+    //or p4.cd('path').cd('to').cd('dir')
+    return exports;
+}
+
 function runCommand(command, args, done) {
     if(typeof args === "function") {
         done = args;
@@ -61,48 +69,70 @@ function revertUnchanged(filepath, done) {
 }
 
 function parseStats(stats) {
-    var statsObj = {}
-      , lastKey;
-    stats = stats.split('\n');
-    stats.forEach(function(line){
-        var level = 0
-          , key = ''
-          , value = ''
-          , obj = [];
-        //line has 3 dots and a space at the beginning, pull that off
-        do{
-            line = line.slice(4);
-            level++;
+    var statsArr = [];
+    stats = stats.split('\n\n');
+    stats.forEach(function(stat){
+        if(stat === '' || stats === '\n'){
+            return;
         }
-        while(0===line.indexOf('... '));
-        obj = line.split(' ');
-        obj[1] = obj.slice(1).join(' ');
-        key = obj[0];
-        value = obj[1];
-        if(!key){ return; }
-        if(value === ''){
-            value = true;
-        }
-        if(level === 1){
-            statsObj[key] = value;
-            //lastKey = key;
-        } else if(level === 2){
-            lastKey = 'other';
-            if(typeof statsObj[lastKey] !== 'object'){
-                statsObj[lastKey] = {};
+        var statsObj = {}
+        , lastKey;
+        stat.split('\n').forEach(function(line){
+            var level = 0
+            , key = ''
+            , value = ''
+            , obj = [];
+            //line has 3 dots and a space at the beginning, pull that off
+            do{
+                line = line.slice(4);
+                level++;
             }
-            statsObj[lastKey][key] = value;
-        }
+            while(0===line.indexOf('... '));
+            obj = line.split(' ');
+            obj[1] = obj.slice(1).join(' ');
+            key = obj[0];
+            value = obj[1];
+            if(!key){ return; }
+            if(value === ''){
+                value = true;
+            }
+            if(level === 1){
+                statsObj[key] = value;
+                //lastKey = key;
+            } else if(level === 2){
+                lastKey = 'other';
+                if(typeof statsObj[lastKey] !== 'object'){
+                    statsObj[lastKey] = {};
+                }
+                statsObj[lastKey][key] = value;
+            }
+        });
+        statsArr.push(statsObj);
     });
-    return statsObj;
+    if(statsArr.length === 1){
+        return statsArr[0];
+    }
+    return statsArr;
 }
 
 function statDir(filepath, done) {
-    runCommand('fstat', path.join(filepath,'*'), done);
+    if(filepath){
+        cd(filepath);
+    }
+    runCommand('fstat','*', function(err,out){
+        if(err){return done(err);}
+        return done(null,parseStats(out));
+    });
 }
 
 function recursiveStatDir(filepath, done) {
-    runCommand('fstat', path.join(filepath,'...'), done);
+    if(filepath){
+        cd(filepath);
+    }
+    runCommand('fstat','...', function(err,out){
+        if(err){return done(err);}
+        return done(null,parseStats(out));
+    });
 }
 
 function stat(filepath, done) {
@@ -132,23 +162,25 @@ function sync(filepath, done) {
 }
 
 function syncDir(filepath, done) {
-    runCommand('sync', path.join(filepath,'*'), done);
+    if(filepath){
+        cd(filepath);
+    }
+    runCommand('sync', '*', done);
 }
 
 function recursiveSyncDir(filepath, done) {
-    runCommand('sync', path.join(filepath,'...'), done);
+    if(filepath){
+        cd(filepath);
+    }
+    runCommand('sync', '...', done);
 }
 
 function login(username, password, done) {
     runShellCommand('echo "'+password+'" | p4 login -u "'+username+'"', done);
 }
 
-function cd(dir){
-    cwd = path.join(cwd,dir);
-    //allow chaining by returning exports
-    //i.e. p4.cd('dir').edit('file')
-    //or p4.cd('path').cd('to').cd('dir')
-    return exports;
+function pwd(){
+    return cwd;
 }
 
 exports.edit = edit;
@@ -167,3 +199,4 @@ exports.recursiveSyncDir = recursiveSyncDir;
 exports.have = have;
 exports.login = login;
 exports.cd = cd;
+exports.pwd = pwd;
