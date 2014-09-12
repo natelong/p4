@@ -5,12 +5,24 @@
 var exec = require("child_process").exec;
 var path = require("path");
 var cwd = __dirname;
+var options = {};
 
 function cd(dir){
     cwd = path.resolve(cwd,dir);
     //allow chaining by returning exports
     //i.e. p4.cd('dir').edit('file')
     //or p4.cd('path').cd('to').cd('dir')
+    return exports;
+}
+
+function setOpts(opts){
+    Object.keys(opts).forEach(function(key){
+        if(key === 'cwd'){
+            //don't let them change cwd via setOpts...
+            return;
+        }
+        options[key] = opts[key];
+    });
     return exports;
 }
 
@@ -23,8 +35,21 @@ function runCommand(command, args, done) {
         args = args.join(' ');
     }
 
-    exec("p4 " + command + " " + (args || ""), {cwd:cwd}, function(err, stdOut, stdErr) {
+    options.cwd = cwd;
+    options.env.PWD = cwd;
+    exec("p4 " + command + " " + (args || ""), options, function(err, stdOut, stdErr) {
         if(err) {return done(err);}
+        //when we run p4 fstat *, it will say no such file(s) on dirs
+        //fix this by reducing the error string and omitting matching lines
+        //when calling join() on an empty array, it returns an empty string which is *falsy*
+        stdErr = stdErr.split('\n').reduce(function(pval,line){
+            if(!/no such file/.test(line)){
+                //only include if it doesn't match our test
+                pval.push(line);
+            }
+            return pval;
+        },[]).join('\n');
+        //this could more easily be done with stdErr = _.reject(stdErr.split('\n'),function(line){return /no such file/.test(line);}).join('\n') but learning reduce is a _good thing_ (TM) and the algorithm is arguably more descriptive and self-documenting when using reduce
         if(stdErr) {return done(new Error(stdErr));}
 
         done(null, stdOut);
@@ -42,7 +67,7 @@ function runShellCommand(command, args, done) {
 
     exec(command + " " + (args || ""), {cwd:cwd}, function(err, stdOut, stdErr) {
         if(err) {return done(err);}
-        if(stdErr) {return done(new Error(stdErr));}
+        if(stdErr) {return done(new Error(stdErr),stdOut);}
 
         done(null, stdOut);
     });
@@ -136,7 +161,8 @@ function recursiveStatDir(filepath, done) {
 }
 
 function stat(filepath, done) {
-    runCommand('fstat', filepath, function(err,out){
+    cd(path.dirname(filepath));
+    runCommand('fstat', path.basename(filepath), function(err,out){
         if(err){return done(err);}
         return done(null,parseStats(out));
     });
@@ -200,3 +226,4 @@ exports.have = have;
 exports.login = login;
 exports.cd = cd;
 exports.pwd = pwd;
+exports.setOpts = setOpts;
