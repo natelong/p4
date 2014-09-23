@@ -133,3 +133,5 @@ p4.sync('output.css',function(err,data){
     console.log(data);
 });
 ```
+
+Originally forked from [natelong/p4](https://github.com/natelong/p4)
