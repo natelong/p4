@@ -1,5 +1,5 @@
-# p4
-p4 is a tiny utility library for dealing with Perforce. Since Perforce sets all files in its workspace as read-only, and expects you to check out any file before editing, automated build processes and whatnot can stumble when trying to write to the file system. This library gives you a simple module to get Perforce out of the way.
+# p4-oo
+p4-oo is a tiny object-oriented library for dealing with Perforce. Since Perforce sets all files in its workspace as read-only, and expects you to check out any file before editing, automated build processes and whatnot can stumble when trying to write to the file system. This library gives you a simple module to get Perforce out of the way. It saves its state across commands, so you can change working directories and set environment variables, and those will persist for subsequent commands. This is very helpful if you have a centralized system which is running perforce commands on behalf of users.
 
 ## Installation
 Get the module from NPM
