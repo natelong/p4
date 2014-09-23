@@ -1,6 +1,6 @@
 {
   "name": "p4-oo",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A small utility library for dealing with Perforce",
   "main": "p4.js",
   "author": "Greg Cochard <greg.cochard@gmail.com> (https://gregcochard.com)",
