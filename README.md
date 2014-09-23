@@ -4,11 +4,12 @@ p4 is a tiny utility library for dealing with Perforce. Since Perforce sets all 
 ## Installation
 Get the module from NPM
 ```shell
-$ npm install p4 --save
+$ npm install p4-oo --save
 ```
 Include it in your project
 ```javascript
-var p4 = require("p4");
+var P4 = require("p4-oo");
+var p4 = new P4();
 ```
 
 ## API Reference
@@ -53,9 +54,82 @@ p4.run("edit", "path/to/file", function(err, stdout) {
     console.log(stdout);
 });
 
-// With optional "args" arg
+// Without optional "args" arg
 p4.run("info", function(err, stdout) {
     if(err) console.error(err.message);
     console.log(stdout);
+});
+```
+
+### p4.setOpts(options)
+Set options for the child_process, these options persist across commands.
+Also supports chaining.
+
+```javascript
+p4.setOpts({env:{P4PORT:'perforce:1666',P4USER:'username',P4CONFIG:'.p4config'}});
+p4.edit("output.css", function(err, stdout) {
+    if(err) console.error(err.message);
+    console.log(stdout);
+    //user 'username' now has 'output.css' checked out
+});
+```
+
+### p4.cd(dir)
+Change working directory for the perforce child_process. This persists across commands.
+Also supports chaining.
+
+```javascript
+p4.cd('/').cd('dir');
+p4.pwd();
+//returns '/dir'
+```
+
+### p4.stat(file,done)
+Stats a file and returns a JSON object with the file's properties.
+
+Should look like the following:
+
+    { depotFile: '//depot/output.css',
+    clientFile: '/Users/username/workspace/output.css',
+    isMapped: true,
+    headAction: 'edit',
+    headType: 'xtext',
+    headTime: '1410890900',
+    headRev: '25',
+    headChange: '1184',
+    headModTime: '1410890778',
+    haveRev: '25',
+    other: 
+     { otherOpen0: 'user@other_workspace',
+       otherAction0: 'edit',
+       otherChange0: '1189',
+       otherOpen: '1' } }
+
+
+
+```javascript
+p4.stat('output.css', function(err,stats){
+    if(err) console.error(err.message);
+    console.dir(stats);
+});
+```
+
+### p4.statDir(directory,done)
+Runs p4 fstat * in the directory. Ignores errors regarding subdirectories not being in workspace. Output matches `p4.stat` schema.
+
+### p4.recursiveStatDir(directory,done)
+Runs p4.fstat ... in the directory. Does not ignore errors, as it is running using perforce's `under this dir` rather than shell glob.
+
+### p4.sync(filename,done)
+Runs p4 sync filename in cwd.
+If file is already at latest revision, is not under client, or perforce errors otherwise, error object will be set.
+If sync is successful, data will look like this:
+
+> //depot/output.css#25 - updating /Users/username/workspace/output.css
+
+```javascript
+p4.sync('output.css',function(err,data){
+    if(err) console.error(err);
+    console.log(data);
 });
 ```

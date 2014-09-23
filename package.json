@@ -1,19 +1,16 @@
 {
-  "name": "p4",
-  "version": "0.0.7",
+  "name": "p4-oo",
+  "version": "0.0.1",
   "description": "A small utility library for dealing with Perforce",
   "main": "p4.js",
-  "author": "Nate Long <long.nathaniel@gmail.com>",
-  "contributors": [
-    "Greg Cochard <greg.cochard@gmail.com> (https://gregcochard.com)"
-  ],
+  "author": "Greg Cochard <greg.cochard@gmail.com> (https://gregcochard.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/natelong/p4.git"
+    "url": "https://github.com/gcochard/p4.git"
   },
   "bugs": {
-    "url": "https://github.com/natelong/p4/issues"
+    "url": "https://github.com/gcochard/p4/issues"
   },
   "keywords": [
     "p4",

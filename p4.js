@@ -4,6 +4,53 @@
 var exec = require("child_process").exec;
 var path = require("path");
 
+function parseStats(stats) {
+    var statsArr = [];
+    stats = stats.split('\n\n');
+    stats.forEach(function(stat){
+        if(stat === '' || stats === '\n'){
+            return;
+        }
+        var statsObj = {}
+        , lastKey;
+        stat.split('\n').forEach(function(line){
+            var level = 0
+            , key = ''
+            , value = ''
+            , obj = [];
+            //line has 3 dots and a space at the beginning, pull that off
+            do{
+                line = line.slice(4);
+                level++;
+            }
+            while(0===line.indexOf('... '));
+            obj = line.split(' ');
+            obj[1] = obj.slice(1).join(' ');
+            key = obj[0];
+            value = obj[1];
+            if(!key){ return; }
+            if(value === ''){
+                value = true;
+            }
+            if(level === 1){
+                statsObj[key] = value;
+                //lastKey = key;
+            } else if(level === 2){
+                lastKey = 'other';
+                if(typeof statsObj[lastKey] !== 'object'){
+                    statsObj[lastKey] = {};
+                }
+                statsObj[lastKey][key] = value;
+            }
+        });
+        statsArr.push(statsObj);
+    });
+    if(statsArr.length === 1){
+        return statsArr[0];
+    }
+    return statsArr;
+}
+
 function P4(){
     if(!this instanceof P4){
         return new P4();
@@ -21,12 +68,13 @@ P4.prototype.cd = function(dir){
 };
 
 P4.prototype.setOpts = function(opts){
+    var self = this;
     Object.keys(opts).forEach(function(key){
         if(key === 'cwd'){
             //don't let them change cwd via setOpts...
             return;
         }
-        this.options[key] = opts[key];
+        self.options[key] = opts[key];
     });
     return this;
 };
@@ -41,6 +89,7 @@ P4.prototype.runCommand = function(command, args, done) {
     }
 
     this.options.cwd = this.cwd;
+    this.options.env = this.options.env || {};
     this.options.env.PWD = this.cwd;
     exec("p4 " + command + " " + (args || ""), this.options, function(err, stdOut, stdErr) {
         if(err) {return done(err);}
@@ -103,81 +152,32 @@ P4.prototype.revertUnchanged = function(filepath, done) {
 };
 /*jslint unparam:false*/
 
-P4.prototype.parseStats = function(stats) {
-    var statsArr = [];
-    stats = stats.split('\n\n');
-    stats.forEach(function(stat){
-        if(stat === '' || stats === '\n'){
-            return;
-        }
-        var statsObj = {}
-        , lastKey;
-        stat.split('\n').forEach(function(line){
-            var level = 0
-            , key = ''
-            , value = ''
-            , obj = [];
-            //line has 3 dots and a space at the beginning, pull that off
-            do{
-                line = line.slice(4);
-                level++;
-            }
-            while(0===line.indexOf('... '));
-            obj = line.split(' ');
-            obj[1] = obj.slice(1).join(' ');
-            key = obj[0];
-            value = obj[1];
-            if(!key){ return; }
-            if(value === ''){
-                value = true;
-            }
-            if(level === 1){
-                statsObj[key] = value;
-                //lastKey = key;
-            } else if(level === 2){
-                lastKey = 'other';
-                if(typeof statsObj[lastKey] !== 'object'){
-                    statsObj[lastKey] = {};
-                }
-                statsObj[lastKey][key] = value;
-            }
-        });
-        statsArr.push(statsObj);
-    });
-    if(statsArr.length === 1){
-        return statsArr[0];
-    }
-    return statsArr;
-};
 
 P4.prototype.statDir = function(filepath, done) {
-    var self = this;
     if(filepath){
         this.cd(filepath);
     }
     this.runCommand('fstat','*', function(err,out){
         if(err){return done(err);}
-        return done(null,self.parseStats(out));
+        return done(null,parseStats(out));
     });
 };
 
 P4.prototype.recursiveStatDir = function(filepath, done) {
-    var self = this;
     if(filepath){
         this.cd(filepath);
     }
     this.runCommand('fstat','...', function(err,out){
         if(err){return done(err);}
-        return done(null,self.parseStats(out));
+        return done(null,parseStats(out));
     });
 };
 
 P4.prototype.stat = function(filepath, done) {
-    var self = this;
     this.cd(path.dirname(filepath));
     this.runCommand('fstat', path.basename(filepath), function(err,out){
         if(err){return done(err);}
-        return done(null,self.parseStats(out));
+        return done(null,parseStats(out));
     });
 };
 
