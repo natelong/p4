@@ -26,8 +26,8 @@ function add(path, done) {
 }
 
 function smartEdit(path, done) {
-    edit(path, function(err) {
-        if(!err) return done();
+    edit(path, function(err, stdout) {
+        if(!err) return done(err, stdout);
 
         add(path, done);
     });
