@@ -1,7 +1,7 @@
 /*jshint node:true*/
 "use strict";
 
-var exec = require("child_process").exec;
+var exec = require("child_process").spawn;
 
 function runCommand(command, args, done) {
     if(typeof args === "function") {
@@ -9,11 +9,27 @@ function runCommand(command, args, done) {
         args = "";
     }
 
-    exec("p4 " + command + " " + (args || ""), function(err, stdOut, stdErr) {
-        if(err) return done(err);
-        if(stdErr) return done(new Error(stdErr));
+    if(!Array.isArray(args)) {
+        args = [args];
+    }
+    args.unshift(command);
 
-        done(null, stdOut);
+    var child = spawn("p4", args);
+    var stdOutBuf = "";
+    var stdErrBuf = "";
+
+    child.stdout.on("data", (data) => stdOutBuf += data);
+    child.stderr.on("data", (data) => stdErrBuf += data)
+    child.on("exit", (code) => {
+        if (code !== 0) {
+            return done(new Error(`p4 subcommand exited with return code ${}`));
+        }
+
+        if (stdErrBuf.length > 0) {
+            return done(new Error(stdErrBuf));
+        }
+
+        done(null, stdOutBuf);
     });
 }
 
