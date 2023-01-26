@@ -3,10 +3,18 @@
 
 var exec = require("child_process").spawn;
 
+function promiseDone(err, out) {
+    return new Promise((res, rej) => (err ? rej(err) : res(out)))
+}
+
 function runCommand(command, args, done) {
     if(typeof args === "function") {
         done = args;
         args = "";
+    }
+
+    if(!done) {
+        done = promiseDone;
     }
 
     if(!Array.isArray(args)) {
