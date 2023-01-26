@@ -1,12 +1,20 @@
 /*jshint node:true*/
 "use strict";
 
-var exec = require("child_process").spawn;
+var spawn = require("child_process").spawn;
+
+function promiseDone(err, out) {
+    return new Promise((res, rej) => (err ? rej(err) : res(out)))
+}
 
 function runCommand(command, args, done) {
     if(typeof args === "function") {
         done = args;
         args = "";
+    }
+
+    if(!done) {
+        done = promiseDone;
     }
 
     if(!Array.isArray(args)) {
@@ -22,7 +30,7 @@ function runCommand(command, args, done) {
     child.stderr.on("data", (data) => stdErrBuf += data)
     child.on("exit", (code) => {
         if (code !== 0) {
-            return done(new Error(`p4 subcommand exited with return code ${}`));
+            return done(new Error(`p4 subcommand exited with return code ${code}`));
         }
 
         if (stdErrBuf.length > 0) {
