@@ -1,7 +1,7 @@
 /*jshint node:true*/
 "use strict";
 
-var exec = require("child_process").spawn;
+var { spawn } = require("child_process");
 
 function runCommand(command, args, done) {
     if(typeof args === "function") {
