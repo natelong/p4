@@ -1,7 +1,7 @@
 /*jshint node:true*/
 "use strict";
 
-var exec = require("child_process").spawn;
+var spawn = require("child_process").spawn;
 
 function promiseDone(err, out) {
     return new Promise((res, rej) => (err ? rej(err) : res(out)))
